@@ -50,8 +50,9 @@ def checkio(maze_map):
 	
     print str
 	
-    return "SSSSSEENNNEEEEEEESSWWWWSSSEEEESS"
+    return str
 
+# test
 checkio([
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
