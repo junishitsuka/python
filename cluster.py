@@ -52,29 +52,49 @@ def main():
         km = KMeans(n_clusters=NUM_CLUSTERS, init='k-means++', n_init=1, verbose=True)
     km.fit(X)
     labels = km.labels_
- 
+    centroids = km.cluster_centers_ # centroids
+
     transformed = km.transform(X)
     dists = np.zeros(labels.shape)
     for i in range(len(labels)):
         dists[i] = transformed[i, labels[i]]
- 
+
     # クラスタの中心距離でソート
     clusters = []
+    distances =[]
     for i in range(NUM_CLUSTERS):
         cluster = []
-        ii = np.where(labels==i)[0]
-        dd = dists[ii]
-        di = np.vstack([dd,ii]).transpose().tolist()
+        ii = np.where(labels==i)[0] # 各クラスタに格納されているデータのラベル
+        dd = dists[ii] # 各クラスタに格納されているデータの距離
+        di = np.vstack([dd,ii]).transpose().tolist() # ラベル + 距離
         di.sort()
         for d, j in di:
             cluster.append(bio[int(j)])
         clusters.append(cluster)
- 
+        distances.append(dd)
+
+    calc_index(centroids, distances)
     return clusters
+
+# Davies-Bouldin index を計算し出力
+def calc_index(centroids, distances):
+    var = []
+    ret = 0
+    for d in distances:
+        var.append(sum(d) / np.sqrt(len(d)))
+    for i in range(len(centroids)):
+        tmp = 0
+        for j in range(len(centroids)):
+            if (i == j): continue
+            tar = (var[i] + var[j]) / np.power(centroids[i]-centroids[j], 2).sum()
+            if (tmp < tar): tmp = tar
+        else:
+            ret += tmp
+    print ret / len(distances)
 
 if __name__ == '__main__':
     clusters = main()
-    filename = 'cluster_%d.txt' % NUM_CLUSTERS
+    filename = 'data/cluster_%d.txt' % NUM_CLUSTERS
     f = open(filename, 'w')
     for i,bio in enumerate(clusters):
         f.write('%d\n' % i)
