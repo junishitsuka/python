@@ -10,7 +10,7 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import Normalizer
 
 NUM_CLUSTERS = 5 # 分割するクラスタ数
-LSA_DIM = 500 # 
+LSA_DIM = 500 # 削減する次元の数 
 MAX_DF = 0.8 # DF>=0.8以上は除外
 MAX_FEATURES = 10000 # 考慮する単語の最大数
 MINIBATCH = True
@@ -33,7 +33,7 @@ def analyzer(text):
     return ret
 
 def main():
-    bio = get_bio_from_txt('biolist.txt')
+    bio = get_bio_from_txt('data/biolist.txt')
     
     # TfidfVectorizerでBag-of-Wordsモデルに変換
     vectorizer = TfidfVectorizer(analyzer=analyzer, max_df=MAX_DF)

@@ -3,7 +3,7 @@ import MeCab,math
 
 # get article data from file
 def get_articles():
-    data = open("article.txt", "r").read()
+    data = open("data/article.txt", "r").read()
     articles = data.split(',')
     articles.pop()
     return articles
@@ -17,8 +17,7 @@ def mecab_parse(articles):
     wordCount = [0] * int(len(result))
     for i in range(len(result)):
         wordCount[i] = {}
-        wordList = result[i].split()[:-1:2]
-        for word in wordList:
+        for word in result:
             wordCount[i].setdefault(word,0)
             wordCount[i][word]+=1
     return wordCount
@@ -60,7 +59,7 @@ def main():
     idf = calc_idf(wordCount)
     tf = calc_tf(wordCount)
     td_idf = calc_tf_idf(tf,idf)
-    print td_idf
+    # print td_idf
     output(td_idf) 
 
 main()
