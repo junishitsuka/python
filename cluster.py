@@ -8,8 +8,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans, MiniBatchKMeans
 from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import Normalizer
+import matplotlib.pyplot as plt
 
-NUM_CLUSTERS = 5 # 分割するクラスタ数
+NUM_CLUSTERS = 1000 # 分割するクラスタ数
 LSA_DIM = 500 # 削減する次元の数 
 MAX_DF = 0.8 # DF>=0.8以上は除外
 MAX_FEATURES = 10000 # 考慮する単語の最大数
@@ -61,7 +62,7 @@ def main():
 
     # クラスタの中心距離でソート
     clusters = []
-    distances =[]
+    distances = []
     for i in range(NUM_CLUSTERS):
         cluster = []
         ii = np.where(labels==i)[0] # 各クラスタに格納されているデータのラベル

@@ -4,18 +4,17 @@
 import MeCab, math, sys, re
 
 NUM_CLUSTERS = 5
-GET_CLUSTER_NUM = 0 # 0 <= x <= 4
 
 def get_cluster_from_txt():
     cluster = NUM_CLUSTERS * ['']
     target = 0
 
-    f = open('cluster_%d.txt' % NUM_CLUSTERS, 'r')
+    f = open('data/cluster_%d/cluster_%d.txt' % (NUM_CLUSTERS, NUM_CLUSTERS), 'r')
     data = f.read()
     data = data.split('\n')
     for d in data:
         d = d.replace('\n\r', '')
-        if (d in ['0', '1', '2', '3', '4']):
+        if (d in [str(i) for i in range(NUM_CLUSTERS)]):
             target = int(d)
             continue
         cluster[target] = cluster[target] + d
@@ -40,7 +39,6 @@ def mecab_parse(articles):
         for word in wordList[i]:
             wordCount[i].setdefault(word,0)
             wordCount[i][word]+=1
-    print wordCount
     return wordCount
 
 def calc_idf(wordCount):
@@ -56,27 +54,37 @@ def calc_idf(wordCount):
 
 # target the first article data (j = 0)
 def calc_tf(wordCount):
-    totalCount = 0
-    wordNum = {}
-    for i in wordCount[GET_CLUSTER_NUM].values():
-        totalCount += i
-    for k,v in wordCount[GET_CLUSTER_NUM].items():
-        wordNum[k] = 1.0 * v / totalCount
+    wordNum = []
+    for i in range(len(wordCount)):
+        totalCount = 0
+        Num = {}
+        for j in wordCount[i].values():
+            totalCount += j
+        for k,v in wordCount[i].items():
+            Num[k] = 1.0 * v / totalCount
+        wordNum.append(Num)
     return wordNum
 
 def calc_tf_idf(tf,idf):
-    td_idf = {}
-    for word in tf.keys():
-        td_idf[word] = tf[word] * idf[word]
-    return td_idf
+    tf_idfs = []
+    for i in range(len(tf)):
+        tf_idf = {}
+        for word in tf[i].keys():
+            tf_idf[word] = tf[i][word] * idf[word]
+        tf_idfs.append(tf_idf)
+    return tf_idfs
 
-def output(td_idf):
-    f = open('tfidf_cluster%d' % GET_CLUSTER_NUM, 'w')
-    for k,v in sorted(td_idf.items(), key=lambda x: x[1], reverse=True):
-        # if (k.count('名詞') >= 1):
-        # print k + ': ' + str(v)
-        f.write(k + ': ' + str(v))
-        f.write('\n')
+def output(tf_idf):
+    f = open('data/cluster_%d/tfidf_%d.txt' % (NUM_CLUSTERS, NUM_CLUSTERS), 'w')
+    for i in range(len(tf_idf)):
+        f.write(str(i) + '\n')
+        output = 0
+        for k,v in sorted(tf_idf[i].items(), key=lambda x: x[1], reverse=True):
+            if (output != 10):
+                f.write(k + ': ' + str(v) + '\n')
+                output += 1
+            else:
+                break
     f.close()
 
 def main():
@@ -85,7 +93,6 @@ def main():
     idf = calc_idf(wordCount)
     tf = calc_tf(wordCount)
     td_idf = calc_tf_idf(tf,idf)
-    # print td_idf
     output(td_idf)
 
 main()
