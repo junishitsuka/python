@@ -35,7 +35,7 @@ def analyzer(text):
     node = tagger.parseToNode(text)
     node = node.next
     while node.next:
-        if node.feature.split(',')[0] == '名詞' and node.surface != JOB_NAME:
+        if node.feature.split(',')[0] == '名詞' and node.surface != JOB_NAME and int(len(node.surface)) >= 2:
             # 名詞かつ単語のみ格納する
             ret.append(node.surface)
         node = node.next
@@ -48,7 +48,7 @@ def main():
     vectorizer = TfidfVectorizer(analyzer=analyzer, max_df=MAX_DF)
     vectorizer.max_features = MAX_FEATURES
     X = vectorizer.fit_transform(bio)
- 
+
     # LSAで次元削減
     lsa = TruncatedSVD(LSA_DIM)
     X = lsa.fit_transform(X)
@@ -97,15 +97,17 @@ def calc_index(centroids, distances):
         tmp = 0
         for j in range(len(centroids)):
             if (i == j or np.linalg.norm(centroids[i]-centroids[j]) == 0): continue
+            print np.linalg.norm(centroids[i]-centroids[j])
             tar = (var[i] + var[j]) / np.linalg.norm(centroids[i]-centroids[j])
             if (tmp < tar): tmp = tar
         else:
             ret += tmp
     print ret / len(distances)
+    print var
 
 if __name__ == '__main__':
     clusters = main()
-    filename = 'data/cluster_%d.txt' % NUM_CLUSTERS
+    filename = 'data/cluster_%d/cluster_%d.txt' % (NUM_CLUSTERS, NUM_CLUSTERS)
     f = open(filename, 'w')
     for i,bio in enumerate(clusters):
         f.write('%d\n' % i)

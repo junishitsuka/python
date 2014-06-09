@@ -3,7 +3,9 @@
 
 import MeCab, math, sys, re
 
-NUM_CLUSTERS = 5
+NUM_CLUSTERS = int(sys.argv[1])
+JOB_ID = 69
+JOB_NAME = 'エンジニア'
 
 def get_cluster_from_txt():
     cluster = NUM_CLUSTERS * ['']
@@ -25,10 +27,16 @@ def mecab_parse(articles):
     wordList = []
     tagger = MeCab.Tagger()
     for i in articles:
+        # URLのhttp://(https://)を除去
+        while re.search(r'(https?://[a-zA-Z0-9.-]*)', i):
+            match = re.search(r'(https?://[a-zA-Z0-9.-]*)', i)
+            if match:
+                replace = match.group(1).split('://')
+                i = i.replace(match.group(1), replace[1])
         node = tagger.parseToNode(i)
         word_in_cluster = []
         while node:
-            if node.feature.split(',')[0] == '名詞':
+            if node.feature.split(',')[0] == '名詞' and node.surface != JOB_NAME and int(len(node.surface)) >= 2:
                 word_in_cluster.append(node.surface)
             node = node.next
         else:
