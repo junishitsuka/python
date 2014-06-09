@@ -1,7 +1,7 @@
 #! /usr/bin/python
 # coding: utf-8
 
-import MeCab, sys
+import MeCab, sys, re
 import numpy as np
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -10,11 +10,13 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import Normalizer
 import matplotlib.pyplot as plt
 
-NUM_CLUSTERS = 1000 # 分割するクラスタ数
+NUM_CLUSTERS = int(sys.argv[1]) # 分割するクラスタ数
 LSA_DIM = 500 # 削減する次元の数 
 MAX_DF = 0.8 # DF>=0.8以上は除外
 MAX_FEATURES = 10000 # 考慮する単語の最大数
 MINIBATCH = True
+JOB_NAME = 'エンジニア'
+JOB_ID = 69
 
 # 改行区切りのファイルからレコードを読み込み
 def get_bio_from_txt(filename):
@@ -24,18 +26,24 @@ def get_bio_from_txt(filename):
 def analyzer(text):
     ret = []
     tagger = MeCab.Tagger()
+    # URLのhttp://(https://)を除去
+    while re.search(r'(https?://[a-zA-Z0-9.-]*)', text):
+        match = re.search(r'(https?://[a-zA-Z0-9.-]*)', text)
+        if match:
+            replace = match.group(1).split('://')
+            text = text.replace(match.group(1), replace[1])
     node = tagger.parseToNode(text)
     node = node.next
     while node.next:
-        if node.feature.split(',')[0] == '名詞':
+        if node.feature.split(',')[0] == '名詞' and node.surface != JOB_NAME:
             # 名詞かつ単語のみ格納する
-            ret.append(node.feature.split(',')[-3].decode('utf-8'))
+            ret.append(node.surface)
         node = node.next
     return ret
 
 def main():
     bio = get_bio_from_txt('data/biolist.txt')
-    
+
     # TfidfVectorizerでBag-of-Wordsモデルに変換
     vectorizer = TfidfVectorizer(analyzer=analyzer, max_df=MAX_DF)
     vectorizer.max_features = MAX_FEATURES
@@ -45,24 +53,24 @@ def main():
     lsa = TruncatedSVD(LSA_DIM)
     X = lsa.fit_transform(X)
     X = Normalizer(copy=False).fit_transform(X)
- 
+
     # k-means法でクラスタリング
     if MINIBATCH:
-        km = MiniBatchKMeans(n_clusters=NUM_CLUSTERS, init='k-means++', batch_size=1000, n_init=10, max_no_improvement=10, verbose=True)
+        km = MiniBatchKMeans(n_clusters=NUM_CLUSTERS, init='k-means++', batch_size=1000, n_init=10, max_no_improvement=10, verbose=False)
     else:
         km = KMeans(n_clusters=NUM_CLUSTERS, init='k-means++', n_init=1, verbose=True)
     km.fit(X)
     labels = km.labels_
     centroids = km.cluster_centers_ # centroids
 
+    # 各レコードの各Centroidsからの距離
     transformed = km.transform(X)
     dists = np.zeros(labels.shape)
     for i in range(len(labels)):
         dists[i] = transformed[i, labels[i]]
 
     # クラスタの中心距離でソート
-    clusters = []
-    distances = []
+    clusters, distances = [], []
     for i in range(NUM_CLUSTERS):
         cluster = []
         ii = np.where(labels==i)[0] # 各クラスタに格納されているデータのラベル
@@ -79,15 +87,17 @@ def main():
 
 # Davies-Bouldin index を計算し出力
 def calc_index(centroids, distances):
-    var = []
-    ret = 0
+    var, ret = [], 0
     for d in distances:
-        var.append(sum(d) / np.sqrt(len(d)))
+        if len(d) != 0:
+            var.append(sum(d) / len(d))
+        else:
+            var.append(0)
     for i in range(len(centroids)):
         tmp = 0
         for j in range(len(centroids)):
-            if (i == j): continue
-            tar = (var[i] + var[j]) / np.power(centroids[i]-centroids[j], 2).sum()
+            if (i == j or np.linalg.norm(centroids[i]-centroids[j]) == 0): continue
+            tar = (var[i] + var[j]) / np.linalg.norm(centroids[i]-centroids[j])
             if (tmp < tar): tmp = tar
         else:
             ret += tmp
