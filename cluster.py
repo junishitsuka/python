@@ -8,11 +8,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans, MiniBatchKMeans
 from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import Normalizer
-import matplotlib.pyplot as plt
 
 NUM_CLUSTERS = int(sys.argv[1]) # 分割するクラスタ数
 LSA_DIM = 500 # 削減する次元の数 
-MAX_DF = 0.8 # DF>=0.8以上は除外
+MAX_DF = 0.8 # DF>=0.8は除外
+MIN_DF = 0.2 # DF<=0.2は除外
 MAX_FEATURES = 10000 # 考慮する単語の最大数
 MINIBATCH = True
 JOB_NAME = 'エンジニア'
@@ -45,7 +45,7 @@ def main():
     bio = get_bio_from_txt('data/biolist.txt')
 
     # TfidfVectorizerでBag-of-Wordsモデルに変換
-    vectorizer = TfidfVectorizer(analyzer=analyzer, max_df=MAX_DF)
+    vectorizer = TfidfVectorizer(analyzer=analyzer, max_df=MAX_DF, min_df=MIN_DF)
     vectorizer.max_features = MAX_FEATURES
     X = vectorizer.fit_transform(bio)
 
