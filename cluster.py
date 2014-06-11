@@ -78,7 +78,7 @@ def main():
         length, center = len(d), np.array([])
         if length == 0:
             center = np.append(center, [0 for i in range(LSA_DIM)])
-            cent = append(center)
+            cent.append(center)
         else:
             for i in range(LSA_DIM):
                 sum = 0
