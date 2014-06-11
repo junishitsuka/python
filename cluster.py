@@ -12,7 +12,7 @@ from sklearn.preprocessing import Normalizer
 NUM_CLUSTERS = int(sys.argv[1]) # 分割するクラスタ数
 LSA_DIM = 500 # 削減する次元の数 
 MAX_DF = 0.8 # DF>=0.8は除外
-MIN_DF = 0.2 # DF<=0.2は除外
+MIN_DF = 5 # tfが5以下を除去
 MAX_FEATURES = 10000 # 考慮する単語の最大数
 MINIBATCH = True
 JOB_NAME = 'エンジニア'
