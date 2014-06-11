@@ -63,6 +63,34 @@ def main():
     labels = km.labels_
     centroids = km.cluster_centers_ # centroids
 
+    # calc_var for confirm
+    target, dst  = 0, [[] for i in range(NUM_CLUSTERS)]
+    for x in X:
+        # セントロイドと各要素ごとのベクトル距離
+        # dst[labels[target]].append(np.linalg.norm(x-centroids[labels[target]]))
+        # セントロイドの計算
+        dst[labels[target]].append(x)
+        target += 1
+    cent = []
+    for d in dst:
+        # DB値の分子の計算
+        # print sum(d) / len(d)
+        length, center = len(d), np.array([])
+        if length == 0:
+            center = np.append(center, [0 for i in range(LSA_DIM)])
+            cent = append(center)
+        else:
+            for i in range(LSA_DIM):
+                sum = 0
+                for x in d:
+                    sum += x[i]
+                else:
+                    center = np.append(center, sum / length)
+            else:
+                cent.append(center)
+    # centroids by my calculation
+    cent = np.array(cent)
+    
     # 各レコードの各Centroidsからの距離
     transformed = km.transform(X)
     dists = np.zeros(labels.shape)
@@ -83,6 +111,7 @@ def main():
         distances.append(dd)
 
     calc_index(centroids, distances)
+    calc_index(cent, distances)
     return clusters
 
 # Davies-Bouldin index を計算し出力
@@ -97,13 +126,11 @@ def calc_index(centroids, distances):
         tmp = 0
         for j in range(len(centroids)):
             if (i == j or np.linalg.norm(centroids[i]-centroids[j]) == 0): continue
-            print np.linalg.norm(centroids[i]-centroids[j])
             tar = (var[i] + var[j]) / np.linalg.norm(centroids[i]-centroids[j])
             if (tmp < tar): tmp = tar
         else:
             ret += tmp
     print ret / len(distances)
-    print var
 
 if __name__ == '__main__':
     clusters = main()
