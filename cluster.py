@@ -12,7 +12,7 @@ from sklearn.preprocessing import Normalizer
 NUM_CLUSTERS = int(sys.argv[1]) # 分割するクラスタ数
 LSA_DIM = 500 # 削減する次元の数 
 MAX_DF = 0.8 # DF>=0.8は除外
-MIN_DF = 5 # tfが5以下を除去
+MIN_DF = 3 # tfが5以下を除去
 MAX_FEATURES = 10000 # 考慮する単語の最大数
 MINIBATCH = True
 JOB_NAME = 'エンジニア'
@@ -122,10 +122,11 @@ def calc_index(centroids, distances):
             var.append(sum(d) / len(d))
         else:
             var.append(0)
-    for i in range(len(centroids)):
+    for i in range(NUM_CLUSTERS):
         tmp = 0
-        for j in range(len(centroids)):
-            if (i == j or np.linalg.norm(centroids[i]-centroids[j]) == 0): continue
+        if len(distances[i] == 0): continue
+        for j in range(NUM_CLUSTERS):
+            if (i == j or np.linalg.norm(centroids[i]-centroids[j]) == 0 or len(distances[j]) == 0): continue
             tar = (var[i] + var[j]) / np.linalg.norm(centroids[i]-centroids[j])
             if (tmp < tar): tmp = tar
         else:
