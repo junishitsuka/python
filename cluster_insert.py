@@ -1,7 +1,7 @@
 #! /usr/bin/python
 # coding: utf-8
 
-import MeCab, sys, re
+import MeCab, sys, re, MySQLdb
 import numpy as np
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -40,6 +40,12 @@ def analyzer(text):
             ret.append(node.surface)
         node = node.next
     return ret
+
+def insert_cluster_id(data, cluster_id):
+    for d in data:
+        sql = "update users set cluster_id = %d where id = %d" % (cluster_id, d[1] + 45546)
+        cursor.execute(sql)
+    connector.commit()
 
 def main():
     bio = get_bio_from_txt('data/biolist.txt')
@@ -98,17 +104,19 @@ def main():
         dists[i] = transformed[i, labels[i]]
 
     # クラスタの中心距離でソート
-    clusters, distances = [], []
+    clusters, distances, num = [], [], 1
     for i in range(NUM_CLUSTERS):
         cluster = []
         ii = np.where(labels==i)[0] # 各クラスタに格納されているデータのラベル
         dd = dists[ii] # 各クラスタに格納されているデータの距離
         di = np.vstack([dd,ii]).transpose().tolist() # ラベル + 距離
+        insert_cluster_id(di, num)
         di.sort()
         for d, j in di:
             cluster.append(bio[int(j)])
         clusters.append(cluster)
         distances.append(dd)
+        num += 1
 
     calc_index(centroids, distances)
     calc_index(cent, distances)
@@ -116,7 +124,7 @@ def main():
 
 # Davies-Bouldin index を計算し出力
 def calc_index(centroids, distances):
-    var, ret, none_cluster = [], 0, 0
+    var, ret = [], 0
     for d in distances:
         if len(d) != 0:
             var.append(sum(d) / len(d))
@@ -124,18 +132,19 @@ def calc_index(centroids, distances):
             var.append(0)
     for i in range(NUM_CLUSTERS):
         tmp = 0
-        if len(distances[i]) == 0:
-            none_cluster += 1
-            continue
+        if len(distances[i]) == 0: continue
         for j in range(NUM_CLUSTERS):
             if (i == j or np.linalg.norm(centroids[i]-centroids[j]) == 0 or len(distances[j]) == 0): continue
             tar = (var[i] + var[j]) / np.linalg.norm(centroids[i]-centroids[j])
             if (tmp < tar): tmp = tar
         else:
             ret += tmp
-    print ret / (len(distances) - none_cluster)
+    print ret / len(distances)
 
 if __name__ == '__main__':
+    connector = MySQLdb.connect(host='localhost', user='ishitsuka', passwd='ud0nud0n', db='ishitsuka', charset='utf8')
+    cursor = connector.cursor()
+    
     clusters = main()
     filename = 'data/cluster_%d/cluster_%d.txt' % (NUM_CLUSTERS, NUM_CLUSTERS)
     f = open(filename, 'w')
@@ -145,3 +154,7 @@ if __name__ == '__main__':
             f.write('%s' % (bio.replace('/n', '')))
         f.write('\n')
     f.close()
+
+    cursor.close()
+    connector.close()
+
