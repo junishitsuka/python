@@ -124,7 +124,7 @@ def calc_index(centroids, distances):
             var.append(0)
     for i in range(NUM_CLUSTERS):
         tmp = 0
-        if len(distances[i] == 0): continue
+        if len(distances[i]) == 0: continue
         for j in range(NUM_CLUSTERS):
             if (i == j or np.linalg.norm(centroids[i]-centroids[j]) == 0 or len(distances[j]) == 0): continue
             tar = (var[i] + var[j]) / np.linalg.norm(centroids[i]-centroids[j])
