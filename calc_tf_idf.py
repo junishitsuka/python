@@ -88,7 +88,7 @@ def output(tf_idf):
         f.write(str(i) + '\n')
         output = 0
         for k,v in sorted(tf_idf[i].items(), key=lambda x: x[1], reverse=True):
-            if (output != 20):
+            if (output != 50):
                 f.write(k + ': ' + str(v) + '\n')
                 output += 1
             else:
