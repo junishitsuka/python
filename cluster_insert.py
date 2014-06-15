@@ -124,7 +124,7 @@ def main():
 
 # Davies-Bouldin index を計算し出力
 def calc_index(centroids, distances):
-    var, ret = [], 0
+    var, ret, none_cluster = [], 0, 0
     for d in distances:
         if len(d) != 0:
             var.append(sum(d) / len(d))
@@ -132,14 +132,16 @@ def calc_index(centroids, distances):
             var.append(0)
     for i in range(NUM_CLUSTERS):
         tmp = 0
-        if len(distances[i]) == 0: continue
+        if len(distances[i]) == 0: 
+            none_cluster += 1
+            continue
         for j in range(NUM_CLUSTERS):
             if (i == j or np.linalg.norm(centroids[i]-centroids[j]) == 0 or len(distances[j]) == 0): continue
             tar = (var[i] + var[j]) / np.linalg.norm(centroids[i]-centroids[j])
             if (tmp < tar): tmp = tar
         else:
             ret += tmp
-    print ret / len(distances)
+    print ret / (len(distances) - none_cluster)
 
 if __name__ == '__main__':
     connector = MySQLdb.connect(host='localhost', user='ishitsuka', passwd='ud0nud0n', db='ishitsuka', charset='utf8')
