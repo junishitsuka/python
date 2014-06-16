@@ -49,6 +49,12 @@ def mecab_parse(articles):
             wordCount[i][word]+=1
     return wordCount
 
+def remove_fet_term(wordCount):
+    for i in range(len(wordCount)):
+        for k,v in wordCount[i].items():
+            if v == 1: wordCount[i].pop(k)
+    return wordCount
+
 def calc_idf(wordCount):
     docNum = int(len(wordCount))
     wordNum = {}
@@ -98,6 +104,7 @@ def output(tf_idf):
 def main():
     articles = get_cluster_from_txt() 
     wordCount = mecab_parse(articles)
+    wordCount = remove_few_term(wordCount)
     idf = calc_idf(wordCount)
     tf = calc_tf(wordCount)
     td_idf = calc_tf_idf(tf,idf)
