@@ -5,14 +5,14 @@ NUM_CLUSTERS = 4
 
 # get article data from file
 def get_reviews():
-    reviews = ['', '', '', '']
+    reviews = [0, 0, 0, 0]
     f = open("better-review.jl")
     for line in f:
         tmp = json.loads(line)
-        if tmp['genre'] == u'イオン導入器': reviews[0] += tmp['review'].encode('utf-8')
-        if tmp['genre'] == u'超音波美顔器': reviews[1] += tmp['review'].encode('utf-8')
-        if tmp['genre'] == u'レーザー美顔器': reviews[2] += tmp['review'].encode('utf-8')
-        if tmp['genre'] == u'その他': reviews[3] += tmp['review'].encode('utf-8')
+        if tmp['genre'] == u'イオン導入器': reviews[0] += 1
+        if tmp['genre'] == u'超音波美顔器': reviews[1] += 1
+        if tmp['genre'] == u'レーザー美顔器': reviews[2] += 1
+        if tmp['genre'] == u'その他': reviews[3] += 1
     return reviews
 
 def mecab_parse(reviews):
@@ -85,6 +85,8 @@ def output(tf_idf):
 
 def main():
     reviews = get_reviews() 
+    print reviews
+    sys.exit()
     wordCount = mecab_parse(reviews)
     idf = calc_idf(wordCount)
     tf = calc_tf(wordCount)
